@@ -1,0 +1,6 @@
+{
+  "name": "Lunaria - Marketplace de Florerías en Tlaxcala",
+  "description": "Marketplace moderno que conecta compradores con las mejores florerías locales de Tlaxcala, México. Catálogo artesanal, selección por comunidad y pedidos directos por WhatsApp.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
