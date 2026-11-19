@@ -1014,6 +1014,7 @@ export const INITIAL_PRODUCT_OFFERS: ProductOffer[] = [
 ];
 
 export const INITIAL_PROFILES: Profile[] = [
+<<<<<<< HEAD
   // Administradoras
   {
     id: 'user-admin-leilani',
@@ -1025,6 +1026,9 @@ export const INITIAL_PROFILES: Profile[] = [
     createdAt: '2025-01-01T00:00:00Z',
     updatedAt: '2026-11-03T00:00:00Z',
   },
+=======
+  // 1 Administradora
+>>>>>>> eed516d25adddc722e7dab08066c5b2229332703
   {
     id: 'user-admin-elena',
     email: 'elena.morales@lunaria.mx',

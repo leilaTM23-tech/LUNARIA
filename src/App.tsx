@@ -19,7 +19,10 @@ import { LoginPage } from './pages/public/LoginPage';
 import { RegisterPage } from './pages/public/RegisterPage';
 import { SellWithUsPage } from './pages/public/SellWithUsPage';
 import { InvitationRegisterPage } from './pages/public/InvitationRegisterPage';
+<<<<<<< HEAD
 import { SupabaseTestPage } from './pages/public/SupabaseTestPage';
+=======
+>>>>>>> eed516d25adddc722e7dab08066c5b2229332703
 
 // Páginas Comprador
 import { BuyerProfilePage } from './pages/buyer/BuyerProfilePage';
@@ -73,7 +76,10 @@ export default function App() {
                   <Route path="/vende-con-nosotros" element={<SellWithUsPage />} />
                   <Route path="/invitacion/:token" element={<InvitationRegisterPage />} />
                   <Route path="/registro-invitacion" element={<InvitationRegisterPage />} />
+<<<<<<< HEAD
                   <Route path="/test-supabase" element={<SupabaseTestPage />} />
+=======
+>>>>>>> eed516d25adddc722e7dab08066c5b2229332703
 
                   {/* --- PÁGINAS COMPRADOR --- */}
                   <Route path="/comprador/perfil" element={<BuyerProfilePage />} />
