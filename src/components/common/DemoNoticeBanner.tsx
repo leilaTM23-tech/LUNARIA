@@ -82,11 +82,7 @@ export const DemoNoticeBanner: React.FC = () => {
               {/* Administradores */}
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-[#9E4D48] mb-2">
-<<<<<<< HEAD
                   Panel de Administración ({allDemoProfiles.filter((p) => p.role === 'admin').length} usuarios)
-=======
-                  Panel de Administración (1 usuario)
->>>>>>> eed516d25adddc722e7dab08066c5b2229332703
                 </p>
                 <div className="space-y-1.5">
                   {allDemoProfiles

@@ -62,22 +62,14 @@ export const LoginPage: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {/* Admin */}
           <button
-<<<<<<< HEAD
             onClick={() => handleSelectDemo('user-admin-leilani', 'admin')}
-=======
-            onClick={() => handleSelectDemo('user-admin-elena', 'admin')}
->>>>>>> eed516d25adddc722e7dab08066c5b2229332703
             className="p-4 rounded-2xl border border-[#EAE3D9] hover:border-[#8C3D38] hover:bg-[#FBF4F2] transition-all text-left flex flex-col justify-between cursor-pointer"
           >
             <div>
               <div className="w-8 h-8 rounded-xl bg-[#FAF0ED] text-[#8C3D38] flex items-center justify-center mb-2">
                 <Shield className="w-4 h-4" />
               </div>
-<<<<<<< HEAD
               <div className="font-semibold text-xs text-[#2C2825]">Leilani TM</div>
-=======
-              <div className="font-semibold text-xs text-[#2C2825]">Lic. Elena Morales</div>
->>>>>>> eed516d25adddc722e7dab08066c5b2229332703
               <div className="text-[11px] text-[#8A8179] mt-0.5">Administradora General</div>
             </div>
             <div className="mt-3 text-[11px] font-semibold text-[#8C3D38] flex items-center gap-1">
