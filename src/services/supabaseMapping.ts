@@ -49,7 +49,8 @@ export const TABLE_FIELDS: Record<TableName, string[]> = {
     'floristPhone', 'floristWhatsapp', 'items', 'totalAmount', 'deliveryFee', 'deliveryMethod',
     'deliveryAddress', 'deliveryCommunityId', 'deliveryCommunityName', 'scheduledDate',
     'scheduledTimeWindow', 'cardMessage', 'specialNotes', 'status', 'statusHistory',
-    'whatsappMessageSent', 'createdAt', 'updatedAt',
+    'whatsappMessageSent', 'paymentStatus', 'paidAt', 'stripeSessionId', 'stripePaymentIntentId',
+    'createdAt', 'updatedAt',
   ],
   florist_invitations: [
     'id', 'email', 'businessName', 'token', 'tokenHash', 'expiresAt', 'usedAt', 'revokedAt',

@@ -14,6 +14,9 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 
+// La florería solo ve pedidos ya pagados; los que esperan pago aún no deben prepararse.
+const onlyPaid = (orders: Order[]) => orders.filter((o) => o.status !== 'awaiting_payment');
+
 export const VendorOrdersPage: React.FC = () => {
   const { currentUser } = useAuth();
   const floristId = currentUser.floristId || 'flor-1';
@@ -32,7 +35,7 @@ export const VendorOrdersPage: React.FC = () => {
     async function loadOrders() {
       setLoading(true);
       try {
-        const list = await repository.getOrders({ floristId });
+        const list = await repository.getOrders({ floristId }).then(onlyPaid);
         setOrders(list);
       } finally {
         setLoading(false);

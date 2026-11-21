@@ -4,7 +4,9 @@ import { repository } from '../../services/repository';
 import { Order } from '../../types';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { generateWhatsAppOrderUrl } from '../../utils/whatsapp';
+import { startOnlinePayment } from '../../services/payments';
 import {
+  CreditCard,
   ChevronRight,
   Store,
   MapPin,
@@ -37,6 +39,21 @@ export const BuyerOrderDetailPage: React.FC = () => {
     }
     loadOrder();
   }, [id]);
+
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
+
+  const handlePayNow = async () => {
+    if (!order) return;
+    setPaying(true);
+    setPayError(null);
+    try {
+      await startOnlinePayment([order.id]);
+    } catch (err: any) {
+      setPayError(err.message || 'No se pudo iniciar el pago en línea.');
+      setPaying(false);
+    }
+  };
 
   const handleCancelOrder = async () => {
     if (!order) return;
@@ -109,20 +126,33 @@ export const BuyerOrderDetailPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Acciones WhatsApp y cancelación */}
+        {/* Acciones: pagar (si falta), WhatsApp y cancelación */}
         <div className="flex flex-wrap items-center gap-3">
-          <a
-            href={waUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-5 py-2.5 bg-[#25D366] hover:bg-[#1EBE5D] text-white text-xs font-semibold rounded-xl flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
-          >
-            <MessageCircle className="w-4 h-4" />
-            <span>Hablar por WhatsApp con {order.floristName}</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
+          {order.status === 'awaiting_payment' ? (
+            <button
+              type="button"
+              onClick={handlePayNow}
+              disabled={paying}
+              className="px-5 py-2.5 bg-[#2C2825] hover:bg-black text-white text-xs font-semibold rounded-xl flex items-center gap-2 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+            >
+              <CreditCard className="w-4 h-4" />
+              <span>{paying ? 'Abriendo Stripe...' : `Pagar ahora $${order.totalAmount.toLocaleString('es-MX')} MXN`}</span>
+            </button>
+          ) : (
+            <a
+              href={waUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-5 py-2.5 bg-[#25D366] hover:bg-[#1EBE5D] text-white text-xs font-semibold rounded-xl flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>Hablar por WhatsApp con {order.floristName}</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          )}
 
-          {(order.status === 'pending_contact' || order.status === 'contacted') && (
+          {/* Solo se puede cancelar antes de pagar (no hay reembolsos automáticos) */}
+          {order.status === 'awaiting_payment' && (
             <button
               onClick={handleCancelOrder}
               disabled={cancelling}
@@ -132,6 +162,9 @@ export const BuyerOrderDetailPage: React.FC = () => {
             </button>
           )}
         </div>
+        {payError && (
+          <p className="w-full text-[11px] text-rose-800 bg-rose-50 border border-rose-200 rounded-xl p-3">{payError}</p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">

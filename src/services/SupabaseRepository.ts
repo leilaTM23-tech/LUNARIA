@@ -646,18 +646,21 @@ export class SupabaseRepository implements ILunariaRepository {
     orderData: Omit<Order, 'id' | 'createdAt' | 'updatedAt' | 'statusHistory'>
   ): Promise<Order> {
     const now = new Date().toISOString();
+    // El pedido nace "esperando pago". Al confirmarse el pago en Stripe, el servidor
+    // (server/payments.ts) lo pasa a "pendiente de contacto" y descuenta el stock.
     const base = {
       ...orderData,
-      status: 'pending_contact' as OrderStatus,
+      status: 'awaiting_payment' as OrderStatus,
+      paymentStatus: 'pending' as const,
       whatsappMessageSent: false,
       createdAt: now,
       updatedAt: now,
       statusHistory: [
         {
-          status: 'pending_contact' as OrderStatus,
+          status: 'awaiting_payment' as OrderStatus,
           timestamp: now,
           changedBy: 'Comprador (Plataforma)',
-          note: 'Pedido generado por el comprador en Lunaria.',
+          note: 'Pedido generado en Lunaria. Esperando pago en línea.',
         },
       ],
     };
@@ -677,18 +680,6 @@ export class SupabaseRepository implements ILunariaRepository {
       }
     }
     if (!created) throw new Error('[Supabase] No se pudo generar un folio único para el pedido.');
-
-    // Descontar stock y sumar ventas de cada producto
-    for (const item of created.items) {
-      const offer = await this.getProductOfferById(item.offerId);
-      if (offer) {
-        await this.patch('product_offers', offer.id, {
-          stock: Math.max(0, offer.stock - item.quantity),
-          salesCount: (offer.salesCount || 0) + item.quantity,
-          updatedAt: now,
-        });
-      }
-    }
 
     return created;
   }

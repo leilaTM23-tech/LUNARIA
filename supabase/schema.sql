@@ -170,17 +170,26 @@ CREATE TABLE public.orders (
     scheduled_time_window    TEXT,
     card_message             TEXT,
     special_notes            TEXT,
-    status                   TEXT NOT NULL DEFAULT 'pending_contact'
-                             CHECK (status IN ('pending_contact', 'contacted', 'confirmed_by_vendor',
+    status                   TEXT NOT NULL DEFAULT 'awaiting_payment'
+                             CONSTRAINT orders_status_check
+                             CHECK (status IN ('awaiting_payment', 'pending_contact', 'contacted', 'confirmed_by_vendor',
                                                'in_preparation', 'on_the_way', 'delivered', 'cancelled')),
     status_history           JSONB NOT NULL DEFAULT '[]'::jsonb,  -- OrderStatusHistoryItem[]
     whatsapp_message_sent    BOOLEAN NOT NULL DEFAULT FALSE,
+    -- Pago en línea (Stripe Checkout)
+    payment_status           TEXT NOT NULL DEFAULT 'pending'
+                             CONSTRAINT orders_payment_status_check
+                             CHECK (payment_status IN ('pending', 'paid')),
+    paid_at                  TIMESTAMPTZ,
+    stripe_session_id        TEXT,
+    stripe_payment_intent_id TEXT,
     created_at               TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at               TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_orders_buyer   ON public.orders(buyer_id);
 CREATE INDEX idx_orders_florist ON public.orders(florist_id);
+CREATE INDEX idx_orders_stripe_session ON public.orders(stripe_session_id);
 
 -- ---------------------------------------------------------------------------
 -- 6. Alta de florerías: invitaciones, solicitudes y bitácora

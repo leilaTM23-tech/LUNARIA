@@ -2,7 +2,7 @@ import { Order } from '../types';
 
 /**
  * Genera la URL oficial de WhatsApp (wa.me) con el mensaje preformateado y limpio.
- * No marca el pedido como pagado ni confirmado de manera automática.
+ * El pago se realiza en línea (Stripe); WhatsApp se usa para coordinar la entrega.
  */
 export function generateWhatsAppOrderUrl(order: Order): string {
   // Limpiar número de teléfono a solo dígitos (E.164 sin signo +)
@@ -23,20 +23,25 @@ export function generateWhatsAppOrderUrl(order: Order): string {
   const cardStr = order.cardMessage ? `\n💌 Mensaje para tarjeta: "${order.cardMessage}"` : '';
   const notesStr = order.specialNotes ? `\n📝 Notas adicionales: ${order.specialNotes}` : '';
 
+  const isPaid = order.paymentStatus === 'paid';
+  const paymentLine = isPaid
+    ? 'Ya realicé el *pago en línea* de este pedido en Lunaria (tarjeta, vía Stripe).'
+    : 'Generé este pedido en Lunaria y está *pendiente de pago en línea*.';
+
   const message = `🌸 *HOLA ${order.floristName.toUpperCase()}, NUEVO PEDIDO LUNARIA #${order.id}*
 
-Hola, soy *${order.buyerName}*. Acabo de generar un pedido en la plataforma Lunaria y me gustaría confirmar detalles de pago y entrega:
+Hola, soy *${order.buyerName}*. ${paymentLine} Me gustaría coordinar los detalles de la entrega:
 
 📦 *Detalle del pedido:*
 ${itemsList}
 
 💰 *Subtotal productos:* $${(order.totalAmount - order.deliveryFee).toLocaleString('es-MX')} MXN
 🚚 *Costo de envío:* ${order.deliveryFee > 0 ? `$${order.deliveryFee} MXN` : 'Sin costo (Recolección)'}
-🏷️ *TOTAL ESTIMADO:* $${order.totalAmount.toLocaleString('es-MX')} MXN
+🏷️ *${isPaid ? 'TOTAL PAGADO' : 'TOTAL'}:* $${order.totalAmount.toLocaleString('es-MX')} MXN
 
 📍 *Modalidad:* ${deliveryTypeStr}${dateStr}${cardStr}${notesStr}
 
-¿Podrían indicarme sus datos de transferencia bancaria / instrucciones para finalizar? ¡Muchas gracias!`;
+¡Muchas gracias!`;
 
   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
 }

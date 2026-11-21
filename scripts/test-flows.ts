@@ -33,6 +33,8 @@ async function main() {
   // Import dinámico: supabaseClient debe leer process.env DESPUÉS de dotenv
   const { SupabaseRepository } = await import('../src/services/SupabaseRepository');
   const { generateWhatsAppOrderUrl } = await import('../src/utils/whatsapp');
+  const { supabase } = await import('../src/services/supabaseClient');
+  const { buildLineItems, confirmPaidOrders } = await import('../server/payments');
   const repo = new SupabaseRepository();
   const COMMUNITY = 'com-tlaxcala-centro';
   const stamp = Date.now();
@@ -68,7 +70,7 @@ async function main() {
   check('Solicitudes con alias (commercialName/email)', apps.every((a) => a.commercialName === a.businessName && a.email === a.applicantEmail));
 
   // ---------------------------------------------------------------------------
-  section('2. Compra completa (bug: pedido sin id)');
+  section('2. Compra: creación del pedido');
   const buyer = profiles.find((p) => p.id === 'user-buyer-mariana')!;
   const offer = inCommunity.find((o) => o.isPublished && o.stock >= 2)!;
   const florist = (await repo.getFloristById(offer.floristId))!;
@@ -103,31 +105,60 @@ async function main() {
     deliveryCommunityId: COMMUNITY,
     deliveryCommunityName: 'Tlaxcala Centro',
     cardMessage: 'Prueba automática',
-    status: 'pending_contact',
+    status: 'awaiting_payment',
+    paymentStatus: 'pending',
     whatsappMessageSent: false,
   });
   check('Pedido creado con folio LUN-XXXX', /^LUN-\d{4}$/.test(order.id), order.id);
+  check('Pedido nace "esperando pago" y sin pagar', order.status === 'awaiting_payment' && order.paymentStatus === 'pending');
   check('Pedido trae historial inicial', order.statusHistory?.length === 1);
-
-  const waUrl = generateWhatsAppOrderUrl(order);
-  check('Mensaje de WhatsApp incluye el folio (no #undefined)',
-    decodeURIComponent(waUrl).includes(`#${order.id}`) && !waUrl.includes('undefined'));
 
   const persisted = await repo.getOrderById(order.id);
   check('Pedido persistido en la base', persisted?.id === order.id && persisted.items.length === 1);
   const buyerOrders = await repo.getOrders({ buyerId: buyer.id });
   check('Aparece en "Mis pedidos" del comprador', buyerOrders.some((o) => o.id === order.id));
+
+  let offerAfter = (await repo.getProductOfferById(offer.id))!;
+  check('Stock NO cambia antes de pagar', offerAfter.stock === offer.stock, { antes: offer.stock, despues: offerAfter.stock });
+
+  // ---------------------------------------------------------------------------
+  section('2b. Pago en línea (lógica del servidor de Stripe)');
+  const lines = buildLineItems([persisted!]);
+  const linesTotal = lines.reduce((acc, l) => acc + (l.price_data!.unit_amount! * l.quantity!), 0);
+  check('Líneas de Stripe en MXN suman el total del pedido (centavos)',
+    lines.every((l) => l.price_data?.currency === 'mxn') && linesTotal === Math.round(order.totalAmount * 100),
+    { lineas: linesTotal, total: order.totalAmount * 100 });
+
+  const firstConfirm = await confirmPaidOrders(supabase, [order.id], 'pi_prueba_123');
+  check('Confirmar pago devuelve el pedido', firstConfirm.length === 1 && firstConfirm[0] === order.id);
+  const paidOrder = (await repo.getOrderById(order.id))!;
+  check('Pedido pagado pasa a "pendiente de contacto"',
+    paidOrder.paymentStatus === 'paid' && paidOrder.status === 'pending_contact' && !!paidOrder.paidAt);
+  check('Se guarda el PaymentIntent de Stripe', paidOrder.stripePaymentIntentId === 'pi_prueba_123');
+  check('Historial registra el pago', paidOrder.statusHistory.length === 2 && paidOrder.statusHistory[1].changedBy.includes('Stripe'));
+
+  offerAfter = (await repo.getProductOfferById(offer.id))!;
+  check('Stock descontado en 2 tras el pago', offerAfter.stock === offer.stock - 2, { antes: offer.stock, despues: offerAfter.stock });
+  check('Ventas incrementadas en 2', offerAfter.salesCount === offer.salesCount + 2);
+
+  const secondConfirm = await confirmPaidOrders(supabase, [order.id], 'pi_prueba_123');
+  const offerAfterRepeat = (await repo.getProductOfferById(offer.id))!;
+  check('Confirmar dos veces no descuenta stock doble (idempotente)',
+    secondConfirm.length === 0 && offerAfterRepeat.stock === offerAfter.stock);
+
+  const waUrl = generateWhatsAppOrderUrl(paidOrder);
+  const waText = decodeURIComponent(waUrl);
+  check('WhatsApp incluye folio y dice que ya está pagado',
+    waText.includes(`#${order.id}`) && waText.includes('TOTAL PAGADO') && !waUrl.includes('undefined'));
+  check('WhatsApp ya no pide datos de transferencia', !waText.includes('transferencia'));
+
   const floristOrders = await repo.getOrders({ floristId: florist.id });
   check('Aparece en pedidos de la florería', floristOrders.some((o) => o.id === order.id));
-
-  const offerAfter = (await repo.getProductOfferById(offer.id))!;
-  check('Stock descontado en 2', offerAfter.stock === offer.stock - 2, { antes: offer.stock, despues: offerAfter.stock });
-  check('Ventas incrementadas en 2', offerAfter.salesCount === offer.salesCount + 2);
 
   const updated = await repo.updateOrderStatus(order.id, 'confirmed_by_vendor', florist.orderAgentName, 'Confirmado');
   const reread = (await repo.getOrderById(order.id))!;
   check('Cambio de estado persistido', reread.status === 'confirmed_by_vendor' && updated.status === 'confirmed_by_vendor');
-  check('Historial con 2 entradas', reread.statusHistory.length === 2);
+  check('Historial con 3 entradas', reread.statusHistory.length === 3);
   await repo.markWhatsAppContacted(order.id);
   check('Marcado como contactado por WhatsApp', (await repo.getOrderById(order.id))!.whatsappMessageSent === true);
 

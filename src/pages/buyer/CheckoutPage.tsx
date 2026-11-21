@@ -4,19 +4,18 @@ import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useMarketplace } from '../../context/MarketplaceContext';
 import { DeliveryMethod, Address, Order } from '../../types';
-import { generateWhatsAppOrderUrl } from '../../utils/whatsapp';
+import { startOnlinePayment } from '../../services/payments';
 import {
   MapPin,
   Calendar,
   Clock,
   Heart,
-  MessageCircle,
   Truck,
   Store,
-  CheckCircle2,
   AlertTriangle,
   ArrowRight,
-  ExternalLink,
+  CreditCard,
+  Lock,
 } from 'lucide-react';
 
 export const CheckoutPage: React.FC = () => {
@@ -54,6 +53,7 @@ export const CheckoutPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorStock, setErrorStock] = useState<string | null>(null);
   const [createdOrders, setCreatedOrders] = useState<Order[] | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   if (items.length === 0 && !createdOrders) {
     return (
@@ -114,101 +114,66 @@ export const CheckoutPage: React.FC = () => {
       });
 
       setCreatedOrders(orders);
+
+      // 2. Ir a pagar a Stripe Checkout (redirige fuera de la app)
+      try {
+        await startOnlinePayment(orders.map((o) => o.id));
+      } catch (err: any) {
+        setPaymentError(err.message || 'No se pudo iniciar el pago en línea.');
+        setIsSubmitting(false);
+      }
     } catch (err: any) {
       setErrorStock(err.message || 'Error procesando el pedido. Por favor intenta de nuevo.');
-    } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Pantalla de Éxito y Enlaces de WhatsApp
+  // Los pedidos se crearon pero no se pudo abrir Stripe (ej. falta STRIPE_SECRET_KEY)
+  if (createdOrders && paymentError) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-16 text-center space-y-4">
+        <div className="w-14 h-14 mx-auto rounded-full bg-rose-50 text-rose-700 flex items-center justify-center">
+          <AlertTriangle className="w-7 h-7" />
+        </div>
+        <h1 className="font-serif text-2xl font-semibold text-[#2C2825]">No pudimos abrir el pago</h1>
+        <p className="text-xs text-[#665E58] leading-relaxed">
+          Tus pedidos ({createdOrders.map((o) => `#${o.id}`).join(', ')}) quedaron guardados como{' '}
+          <strong>esperando pago</strong>. Puedes reintentar desde aquí o más tarde desde "Mis pedidos".
+        </p>
+        <p className="text-[11px] text-rose-800 bg-rose-50 border border-rose-200 rounded-xl p-3">{paymentError}</p>
+        <div className="flex items-center justify-center gap-3 pt-2">
+          <button
+            type="button"
+            disabled={isSubmitting}
+            onClick={async () => {
+              setIsSubmitting(true);
+              try {
+                await startOnlinePayment(createdOrders.map((o) => o.id));
+              } catch (err: any) {
+                setPaymentError(err.message || 'No se pudo iniciar el pago en línea.');
+                setIsSubmitting(false);
+              }
+            }}
+            className="px-5 py-2.5 bg-[#2C2825] hover:bg-black text-white text-xs font-semibold rounded-xl flex items-center gap-2 cursor-pointer disabled:opacity-50"
+          >
+            <CreditCard className="w-4 h-4" />
+            {isSubmitting ? 'Abriendo Stripe...' : 'Reintentar pago'}
+          </button>
+          <Link to="/comprador/pedidos" className="text-xs text-[#B25E5C] font-semibold hover:underline">
+            Ver mis pedidos
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Pedidos creados: mientras el navegador sale hacia Stripe
   if (createdOrders) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-12 space-y-8">
-        <div className="text-center space-y-3 bg-white p-8 rounded-3xl border border-[#EAE3D9] shadow-sm">
-          <div className="w-16 h-16 mx-auto rounded-full bg-[#EEF3EE] text-[#5A735E] flex items-center justify-center">
-            <CheckCircle2 className="w-10 h-10" />
-          </div>
-          <h1 className="font-serif text-3xl font-semibold text-[#2C2825]">
-            ¡Pedido registrado con éxito!
-          </h1>
-          <p className="text-xs text-[#665E58] max-w-lg mx-auto leading-relaxed">
-            Hemos generado {createdOrders.length === 1 ? 'tu pedido' : `${createdOrders.length} pedidos independientes`} para la florería correspondiente. A continuación, abre WhatsApp para coordinar tu pago y la entrega.
-          </p>
-        </div>
-
-        {/* Tarjetas de contacto por WhatsApp por cada pedido */}
-        <div className="space-y-4">
-          {createdOrders.map((order) => {
-            const waUrl = generateWhatsAppOrderUrl(order);
-            return (
-              <div
-                key={order.id}
-                className="bg-white rounded-2xl p-6 border border-[#EAE3D9] shadow-xs space-y-4"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#F2ECE4] gap-2">
-                  <div>
-                    <span className="text-xs font-bold text-[#8C3D38]">Pedido #{order.id}</span>
-                    <h3 className="font-serif text-lg font-semibold text-[#2C2825]">{order.floristName}</h3>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs text-[#8A8179]">Total a liquidar:</div>
-                    <div className="text-lg font-bold text-[#2C2825] tabular-nums">
-                      ${order.totalAmount.toLocaleString('es-MX')} MXN
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-1 text-xs text-[#665E58]">
-                  <div className="font-medium text-[#2C2825]">Productos en este paquete:</div>
-                  <ul className="list-disc list-inside text-[#7A736E] space-y-0.5">
-                    {order.items.map((i) => (
-                      <li key={i.id}>
-                        {i.quantity}x {i.productTitle} (${i.subtotal.toLocaleString('es-MX')} MXN)
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="pt-2 text-[11px] text-[#8A8179]">
-                    Modalidad: {order.deliveryMethod === 'delivery' ? `Envío a domicilio en ${order.deliveryCommunityName}` : 'Recolección en taller'}
-                  </div>
-                </div>
-
-                {/* Botón oficial de WhatsApp */}
-                <div className="pt-3 border-t border-[#F2ECE4] flex flex-col sm:flex-row items-center justify-between gap-3">
-                  <span className="text-[11px] text-[#7A736E]">
-                    El pedido se encuentra en estado <strong>Pendiente de contacto</strong>.
-                  </span>
-
-                  <a
-                    href={waUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full sm:w-auto px-6 py-3 bg-[#25D366] hover:bg-[#1EBE5D] text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                    <span>Enviar resumen a {order.floristName} por WhatsApp</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="text-center pt-4 flex items-center justify-center gap-4">
-          <Link
-            to="/comprador/pedidos"
-            className="px-6 py-2.5 bg-[#2C2825] text-white text-xs font-semibold rounded-xl hover:bg-black transition-colors"
-          >
-            Ver mis pedidos registrados
-          </Link>
-          <Link
-            to="/catalogo"
-            className="text-xs text-[#B25E5C] font-semibold hover:underline"
-          >
-            Continuar explorando
-          </Link>
-        </div>
+      <div className="max-w-md mx-auto px-4 py-24 text-center space-y-3">
+        <CreditCard className="w-10 h-10 mx-auto text-[#B25E5C] animate-pulse" />
+        <h1 className="font-serif text-2xl font-semibold text-[#2C2825]">Redirigiendo al pago seguro…</h1>
+        <p className="text-xs text-[#7A736E]">Te llevamos a Stripe para completar el pago con tarjeta.</p>
       </div>
     );
   }
@@ -498,12 +463,17 @@ export const CheckoutPage: React.FC = () => {
             disabled={isSubmitting}
             className="w-full py-4 bg-[#2C2825] hover:bg-black text-white text-xs font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-50"
           >
-            <span>{isSubmitting ? 'Generando pedidos...' : 'Confirmar pedido y abrir WhatsApp'}</span>
+            <CreditCard className="w-4 h-4" />
+            <span>{isSubmitting ? 'Preparando pago...' : `Pagar $${grandTotal.toLocaleString('es-MX')} MXN con tarjeta`}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
 
-          <p className="text-[11px] text-[#7A736E] text-center leading-relaxed">
-            Al confirmar, se creará el pedido y podrás contactar al florista vía WhatsApp para acordar pago por transferencia bancaria o contra entrega.
+          <p className="text-[11px] text-[#7A736E] text-center leading-relaxed flex items-start justify-center gap-1.5">
+            <Lock className="w-3 h-3 mt-0.5 shrink-0" />
+            <span>
+              Pago seguro procesado por Stripe. Tras el pago, la florería recibe tu pedido y podrás coordinar la
+              entrega por WhatsApp.
+            </span>
           </p>
         </div>
       </form>

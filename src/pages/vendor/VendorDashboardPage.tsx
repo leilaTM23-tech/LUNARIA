@@ -27,6 +27,9 @@ import {
   Lock,
 } from 'lucide-react';
 
+// La florería solo ve pedidos ya pagados; los que esperan pago aún no deben prepararse.
+const onlyPaid = (orders: Order[]) => orders.filter((o) => o.status !== 'awaiting_payment');
+
 export const VendorDashboardPage: React.FC = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -52,7 +55,7 @@ export const VendorDashboardPage: React.FC = () => {
     try {
       const [fl, ords, offs] = await Promise.all([
         repository.getFloristById(floristId),
-        repository.getOrders({ floristId }),
+        repository.getOrders({ floristId }).then(onlyPaid),
         repository.getProductOffers({ floristId }),
       ]);
       setFlorist(fl);
@@ -87,7 +90,7 @@ export const VendorDashboardPage: React.FC = () => {
       `${florist?.orderAgentName || 'Florista'} (Taller)`,
       `Estado actualizado desde el panel de control de ${florist?.commercialName}.`
     );
-    const updated = await repository.getOrders({ floristId });
+    const updated = await repository.getOrders({ floristId }).then(onlyPaid);
     setOrders(updated);
   };
 

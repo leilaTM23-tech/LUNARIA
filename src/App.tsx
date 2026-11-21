@@ -25,6 +25,7 @@ import { SupabaseTestPage } from './pages/public/SupabaseTestPage';
 import { BuyerProfilePage } from './pages/buyer/BuyerProfilePage';
 import { CartPage } from './pages/buyer/CartPage';
 import { CheckoutPage } from './pages/buyer/CheckoutPage';
+import { PaymentResultPage } from './pages/buyer/PaymentResultPage';
 import { BuyerOrdersPage } from './pages/buyer/BuyerOrdersPage';
 import { BuyerOrderDetailPage } from './pages/buyer/BuyerOrderDetailPage';
 
@@ -79,6 +80,7 @@ export default function App() {
                   <Route path="/comprador/perfil" element={<BuyerProfilePage />} />
                   <Route path="/carrito" element={<CartPage />} />
                   <Route path="/checkout" element={<CheckoutPage />} />
+                  <Route path="/checkout/pago" element={<PaymentResultPage />} />
                   <Route path="/comprador/pedidos" element={<BuyerOrdersPage />} />
                   <Route path="/comprador/pedido/:id" element={<BuyerOrderDetailPage />} />
 

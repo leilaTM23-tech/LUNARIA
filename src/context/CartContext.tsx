@@ -203,7 +203,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         scheduledTimeWindow: params.scheduledTimeWindow,
         cardMessage: params.cardMessage,
         specialNotes: params.specialNotes,
-        status: 'pending_contact',
+        status: 'awaiting_payment',
+        paymentStatus: 'pending',
         whatsappMessageSent: false,
       });
 
