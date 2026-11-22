@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useRequiredUser } from '../../context/AuthContext';
 import { repository } from '../../services/repository';
 import { ProductOffer, CatalogProduct, Florist } from '../../types';
 import { getFloralSvg } from '../../data/flowerImages';
@@ -9,7 +9,7 @@ import { ArrowLeft, Save, Sparkles, Plus, X, Lock } from 'lucide-react';
 export const VendorProductFormPage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
+  const currentUser = useRequiredUser();
   const floristId = currentUser.floristId || 'flor-1';
 
   const isEditing = Boolean(id);

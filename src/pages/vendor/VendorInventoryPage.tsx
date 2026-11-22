@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import { useRequiredUser } from '../../context/AuthContext';
 import { repository } from '../../services/repository';
 import { ProductOffer } from '../../types';
 import { Package, AlertTriangle, Check, RefreshCw, Plus, Minus } from 'lucide-react';
 
 export const VendorInventoryPage: React.FC = () => {
-  const { currentUser } = useAuth();
+  const currentUser = useRequiredUser();
   const floristId = currentUser.floristId || 'flor-1';
 
   const [offers, setOffers] = useState<ProductOffer[]>([]);

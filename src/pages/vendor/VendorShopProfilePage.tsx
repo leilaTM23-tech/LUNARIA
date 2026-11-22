@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import { useRequiredUser } from '../../context/AuthContext';
 import { useMarketplace } from '../../context/MarketplaceContext';
 import { repository } from '../../services/repository';
 import { Florist } from '../../types';
@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 export const VendorShopProfilePage: React.FC = () => {
-  const { currentUser } = useAuth();
+  const currentUser = useRequiredUser();
   const { communities, refreshMarketplaceData } = useMarketplace();
   const floristId = currentUser.floristId || 'flor-1';
 

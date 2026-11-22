@@ -25,7 +25,7 @@ export const TABLE_FIELDS: Record<TableName, string[]> = {
   communities: ['id', 'name', 'municipality', 'postalCodes', 'isActive', 'notes'],
   categories: ['id', 'name', 'slug', 'description', 'iconName', 'order'],
   profiles: [
-    'id', 'email', 'fullName', 'phone', 'role', 'avatarUrl', 'floristId', 'addresses',
+    'id', 'authUserId', 'email', 'fullName', 'phone', 'role', 'avatarUrl', 'floristId', 'addresses',
     'createdAt', 'updatedAt',
   ],
   florists: [

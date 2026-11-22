@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useRequiredUser } from '../../context/AuthContext';
 import { repository } from '../../services/repository';
 import { ProductOffer, CatalogProduct, Florist } from '../../types';
 import {
@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 export const VendorProductsPage: React.FC = () => {
-  const { currentUser } = useAuth();
+  const currentUser = useRequiredUser();
   const floristId = currentUser.floristId || 'flor-1';
   const navigate = useNavigate();
 

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import { useRequiredUser } from '../../context/AuthContext';
 import { useMarketplace } from '../../context/MarketplaceContext';
 import { repository } from '../../services/repository';
 import { Florist, DeliveryZoneRule } from '../../types';
 import { Truck, Plus, Trash2, Check, Save, MapPin } from 'lucide-react';
 
 export const VendorDeliveriesPage: React.FC = () => {
-  const { currentUser } = useAuth();
+  const currentUser = useRequiredUser();
   const { communities, refreshMarketplaceData } = useMarketplace();
   const floristId = currentUser.floristId || 'flor-1';
 

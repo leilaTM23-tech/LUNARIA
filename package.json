@@ -11,6 +11,7 @@
     "lint": "tsc --noEmit",
     "test:supabase": "tsx scripts/test-supabase.ts",
     "seed:supabase": "tsx scripts/seed-supabase.ts",
+    "seed:auth": "tsx scripts/seed-auth.ts",
     "test:flows": "tsx scripts/test-flows.ts"
   },
   "dependencies": {

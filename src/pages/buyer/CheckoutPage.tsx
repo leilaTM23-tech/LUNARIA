@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart, getDeliveryFee } from '../../context/CartContext';
-import { useAuth } from '../../context/AuthContext';
+import { useRequiredUser } from '../../context/AuthContext';
 import { useMarketplace } from '../../context/MarketplaceContext';
 import { DeliveryMethod, Address, Order } from '../../types';
 import { startOnlinePayment } from '../../services/payments';
@@ -21,7 +21,7 @@ import {
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const { items, groupedByFlorist, createCheckoutOrders, clearCart } = useCart();
-  const { currentUser } = useAuth();
+  const currentUser = useRequiredUser();
   const { communities, selectedCommunity } = useMarketplace();
 
   // Estados del formulario

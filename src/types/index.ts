@@ -7,6 +7,7 @@ export type UserRole = 'buyer' | 'florist' | 'admin';
 
 export interface Profile {
   id: string;
+  authUserId?: string; // id de la cuenta de Supabase Auth vinculada a este perfil
   email: string;
   fullName: string;
   phone: string;

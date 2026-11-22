@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth, homeForRole } from '../../context/AuthContext';
 import { useMarketplace } from '../../context/MarketplaceContext';
 import { useCart } from '../../context/CartContext';
 import { CommunitySelectorModal } from './CommunitySelectorModal';
@@ -25,13 +25,18 @@ export const Navbar: React.FC = () => {
   const navigate = useNavigate();
 
   const handleRoleNavigation = () => {
-    if (currentUser.role === 'admin') {
-      navigate('/admin');
-    } else if (currentUser.role === 'florist') {
-      navigate('/vendedor');
-    } else {
-      navigate('/comprador/perfil');
-    }
+    if (!currentUser) navigate('/login');
+    else navigate(currentUser.role === 'buyer' ? '/comprador/perfil' : homeForRole(currentUser.role));
+  };
+
+  const handleLogout = async () => {
+    setIsUserMenuOpen(false);
+    setIsMobileMenuOpen(false);
+    // Primero salir a una página pública: si cerráramos sesión estando en una ruta protegida,
+    // <RequireAuth> redirigiría al login "recordando" esa página, y el siguiente usuario
+    // que inicie sesión en este navegador terminaría en ella.
+    navigate('/', { replace: true });
+    await logout();
   };
 
   return (
@@ -76,7 +81,7 @@ export const Navbar: React.FC = () => {
             >
               Florerías en Tlaxcala
             </Link>
-            {currentUser.role === 'buyer' && (
+            {currentUser?.role === 'buyer' && (
               <Link
                 to="/comprador/pedidos"
                 className="hover:text-[#B25E5C] transition-colors whitespace-nowrap shrink-0"
@@ -84,7 +89,7 @@ export const Navbar: React.FC = () => {
                 Mis Pedidos
               </Link>
             )}
-            {currentUser.role === 'florist' && (
+            {currentUser?.role === 'florist' && (
               <Link
                 to="/vendedor"
                 className="hover:text-[#B25E5C] text-[#5A735E] font-semibold transition-colors whitespace-nowrap shrink-0 flex items-center gap-1"
@@ -93,7 +98,7 @@ export const Navbar: React.FC = () => {
                 Panel Vendedor
               </Link>
             )}
-            {currentUser.role === 'admin' && (
+            {currentUser?.role === 'admin' && (
               <Link
                 to="/admin"
                 className="hover:text-[#B25E5C] text-[#8C3D38] font-semibold transition-colors whitespace-nowrap shrink-0 flex items-center gap-1"
@@ -139,7 +144,27 @@ export const Navbar: React.FC = () => {
               )}
             </Link>
 
-            {/* User profile dropdown */}
+            {/* Invitado: accesos a login y registro */}
+            {!currentUser && (
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/login"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-[#2C2825] hover:bg-black rounded-lg transition-colors"
+                >
+                  <User className="w-3.5 h-3.5" />
+                  <span>Iniciar sesión</span>
+                </Link>
+                <Link
+                  to="/registro"
+                  className="hidden sm:inline-flex px-3 py-1.5 text-xs font-medium text-[#2C2825] bg-white border border-[#EAE3D9] hover:border-[#D1C6BA] rounded-lg transition-colors"
+                >
+                  Crear cuenta
+                </Link>
+              </div>
+            )}
+
+            {/* User profile dropdown (solo con sesión iniciada) */}
+            {currentUser && (
             <div className="relative">
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
@@ -275,10 +300,7 @@ export const Navbar: React.FC = () => {
 
                   <div className="border-t border-[#EAE3D9] mt-1 pt-1">
                     <button
-                      onClick={() => {
-                        logout();
-                        setIsUserMenuOpen(false);
-                      }}
+                      onClick={handleLogout}
                       className="w-full text-left px-4 py-2 text-rose-700 hover:bg-rose-50 cursor-pointer"
                     >
                       Cerrar Sesión
@@ -287,6 +309,7 @@ export const Navbar: React.FC = () => {
                 </div>
               )}
             </div>
+            )}
 
             {/* Mobile menu toggle */}
             <button
@@ -341,15 +364,42 @@ export const Navbar: React.FC = () => {
               >
                 Vende con nosotros (Registro de Florería)
               </Link>
-              <button
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  handleRoleNavigation();
-                }}
-                className="w-full text-left px-3 py-2 rounded-lg text-[#B25E5C] hover:bg-[#FAF0ED]"
-              >
-                Mi Panel ({currentUser.role})
-              </button>
+              {currentUser ? (
+                <>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleRoleNavigation();
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-lg text-[#B25E5C] hover:bg-[#FAF0ED]"
+                  >
+                    Mi cuenta ({currentUser.fullName})
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-3 py-2 rounded-lg text-rose-700 hover:bg-rose-50"
+                  >
+                    Cerrar sesión
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block px-3 py-2 rounded-lg text-[#B25E5C] hover:bg-[#FAF0ED]"
+                  >
+                    Iniciar sesión
+                  </Link>
+                  <Link
+                    to="/registro"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block px-3 py-2 rounded-lg text-[#2C2825] hover:bg-[#FAF8F5]"
+                  >
+                    Crear cuenta
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         )}

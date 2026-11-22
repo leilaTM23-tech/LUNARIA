@@ -23,7 +23,7 @@ export const InvitationRegisterPage: React.FC = () => {
   const initialToken = routeToken || queryToken || '';
 
   const navigate = useNavigate();
-  const { switchDemoUser } = useAuth();
+  const { currentUser, register, updateCurrentProfile } = useAuth();
 
   const [tokenInput, setTokenInput] = useState(initialToken);
   const [activeToken, setActiveToken] = useState(initialToken);
@@ -37,6 +37,7 @@ export const InvitationRegisterPage: React.FC = () => {
   const [commercialName, setCommercialName] = useState('');
   const [orderAgentName, setOrderAgentName] = useState('');
   const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [communityId, setCommunityId] = useState('');
   const [address, setAddress] = useState('');
@@ -94,6 +95,7 @@ export const InvitationRegisterPage: React.FC = () => {
     const errs: { [key: string]: string } = {};
     if (!orderAgentName.trim()) errs.orderAgentName = 'Ingresa el nombre del responsable del taller.';
     if (!phone.trim() || phone.length < 8) errs.phone = 'Ingresa un teléfono de contacto válido.';
+    if (!currentUser && password.length < 8) errs.password = 'Crea una contraseña de al menos 8 caracteres.';
     if (!whatsapp.trim() || whatsapp.length < 8) errs.whatsapp = 'Ingresa el número de WhatsApp para pedidos.';
     if (!address.trim()) errs.address = 'Ingresa la dirección de tu florería en Tlaxcala.';
     if (!description.trim() || description.length < 15) {
@@ -111,15 +113,35 @@ export const InvitationRegisterPage: React.FC = () => {
     try {
       const selectedComm = communities.find((c) => c.id === communityId);
       const newFloristId = `flor-inv-${Date.now().toString(36)}`;
-      const newUserId = `user-${newFloristId}`;
 
-      // 1. Mark invitation as used
+      // 1. Cuenta de acceso del florista
+      let applicantId: string;
+      if (currentUser) {
+        if (currentUser.role !== 'buyer') {
+          setErrors({ form: 'Tu cuenta ya es de florería o de administración. Cierra sesión para registrar otra florería.' });
+          return;
+        }
+        applicantId = (await updateCurrentProfile({ role: 'florist', floristId: newFloristId })).id;
+      } else {
+        applicantId = (
+          await register({
+            email: invitation.email,
+            password,
+            fullName: orderAgentName.trim(),
+            phone: phone.trim(),
+            role: 'florist',
+            floristId: newFloristId,
+          })
+        ).id;
+      }
+
+      // 2. Marcar la invitación como usada (solo después de crear la cuenta)
       await repository.markInvitationUsed(invitation.token);
 
-      // 2. Submit florist application (via invitation)
+      // 3. Enviar la solicitud de alta (vía invitación)
       await repository.submitFloristApplication({
         floristId: newFloristId,
-        applicantId: newUserId,
+        applicantId,
         registrationMethod: 'invitation',
         invitationId: invitation.id,
         commercialName: commercialName || invitation.businessName,
@@ -142,9 +164,9 @@ export const InvitationRegisterPage: React.FC = () => {
         },
       });
 
-      // 3. Switch demo profile
-      switchDemoUser(newUserId);
       setCompletedFloristId(newFloristId);
+    } catch (err: any) {
+      setErrors({ form: err.message || 'No se pudo completar el registro.' });
     } finally {
       setSubmitting(false);
     }
@@ -397,6 +419,36 @@ export const InvitationRegisterPage: React.FC = () => {
                 )}
               </div>
             </div>
+
+            {/* Cuenta de acceso: solo si el visitante aún no tiene sesión */}
+            {errors.form && (
+              <div role="alert" className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800">
+                {errors.form}
+              </div>
+            )}
+            {currentUser ? (
+              <p className="text-[11px] text-[#665E58] bg-[#FAF8F5] border border-[#EAE3D9] rounded-xl p-3">
+                La florería quedará vinculada a tu cuenta <strong>{currentUser.email}</strong>.
+              </p>
+            ) : (
+              <div>
+                <label htmlFor="florist-password" className="block text-xs font-medium text-[#2C2825] mb-1">
+                  Contraseña para tu cuenta de vendedor *
+                </label>
+                <input
+                  id="florist-password"
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="Mínimo 8 caracteres"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={`w-full px-3.5 py-2.5 text-xs bg-[#FAF8F5] border rounded-xl ${
+                    errors.password ? 'border-rose-300' : 'border-[#EAE3D9]'
+                  }`}
+                />
+                {errors.password && <p className="text-[11px] text-rose-600 mt-1">{errors.password}</p>}
+              </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>

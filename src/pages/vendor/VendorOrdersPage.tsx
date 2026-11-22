@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import { useRequiredUser } from '../../context/AuthContext';
 import { repository } from '../../services/repository';
 import { Order, OrderStatus } from '../../types';
 import { StatusBadge } from '../../components/common/StatusBadge';
@@ -18,7 +18,7 @@ import {
 const onlyPaid = (orders: Order[]) => orders.filter((o) => o.status !== 'awaiting_payment');
 
 export const VendorOrdersPage: React.FC = () => {
-  const { currentUser } = useAuth();
+  const currentUser = useRequiredUser();
   const floristId = currentUser.floristId || 'flor-1';
 
   const [orders, setOrders] = useState<Order[]>([]);

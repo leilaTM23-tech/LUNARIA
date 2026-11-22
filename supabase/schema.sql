@@ -59,6 +59,7 @@ CREATE TABLE public.categories (
 -- ---------------------------------------------------------------------------
 CREATE TABLE public.profiles (
     id          TEXT PRIMARY KEY,
+    auth_user_id TEXT UNIQUE,          -- id de la cuenta en auth.users (Supabase Auth)
     email       TEXT NOT NULL,
     full_name   TEXT NOT NULL,
     phone       TEXT NOT NULL DEFAULT '',

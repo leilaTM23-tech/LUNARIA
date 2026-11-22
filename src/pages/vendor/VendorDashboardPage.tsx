@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useRequiredUser } from '../../context/AuthContext';
 import { repository } from '../../services/repository';
 import { Florist, Order, ProductOffer, OrderStatus, FloristApplication, ApplicationAuditLog } from '../../types';
 import { StatusBadge } from '../../components/common/StatusBadge';
@@ -31,7 +31,7 @@ import {
 const onlyPaid = (orders: Order[]) => orders.filter((o) => o.status !== 'awaiting_payment');
 
 export const VendorDashboardPage: React.FC = () => {
-  const { currentUser } = useAuth();
+  const currentUser = useRequiredUser();
   const navigate = useNavigate();
   const [florist, setFlorist] = useState<Florist | null>(null);
   const [application, setApplication] = useState<FloristApplication | null>(null);

@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { repository } from '../../services/repository';
 import { useAuth } from '../../context/AuthContext';
 import { useMarketplace } from '../../context/MarketplaceContext';
-import { Profile, Florist } from '../../types';
+import { Florist } from '../../types';
 import { User, Store, Check, ArrowRight } from 'lucide-react';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
-  const { switchDemoUser } = useAuth();
+  const { register } = useAuth();
+  const location = useLocation();
+  // Si llegó desde el login de un checkout, al terminar regresa ahí
+  const from = (location.state as { from?: string } | null)?.from;
   const { communities, refreshMarketplaceData } = useMarketplace();
 
   const [roleType, setRoleType] = useState<'buyer' | 'florist'>('buyer');
@@ -25,21 +28,29 @@ export const RegisterPage: React.FC = () => {
 
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName || !email || !phone) return;
+    setErrorMessage('');
+    if (!fullName.trim() || !email.trim() || !phone.trim()) {
+      setErrorMessage('Completa nombre, teléfono y correo.');
+      return;
+    }
+    if (password.length < 8) {
+      setErrorMessage('La contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
 
     setLoading(true);
     try {
-      const newUserId = `user-${Date.now()}`;
-
       if (roleType === 'buyer') {
-        const newProfile: Profile = {
-          id: newUserId,
+        // 1. Cuenta de acceso + perfil de comprador
+        await register({
           email,
-          fullName,
-          phone,
+          password,
+          fullName: fullName.trim(),
+          phone: phone.trim(),
           role: 'buyer',
           addresses: [
             {
@@ -52,20 +63,25 @@ export const RegisterPage: React.FC = () => {
               isDefault: true,
             },
           ],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
-        await repository.saveProfile(newProfile);
-        await switchDemoUser(newUserId);
-        setSuccessMessage('¡Cuenta creada exitosamente! Redirigiendo a tu perfil...');
-        setTimeout(() => navigate('/comprador/perfil'), 1500);
+        });
+        setSuccessMessage('¡Cuenta creada exitosamente! Redirigiendo...');
+        setTimeout(() => navigate(from || '/comprador/perfil', { replace: true }), 1200);
       } else {
-        // Registro de vendedor y florería
+        // 1. Cuenta de acceso + perfil de florista (ligado a la florería que se crea abajo)
         const newFloristId = `flor-${Date.now()}`;
+        const profile = await register({
+          email,
+          password,
+          fullName: fullName.trim(),
+          phone: phone.trim(),
+          role: 'florist',
+          floristId: newFloristId,
+        });
+
+        // 2. Florería en estado "pendiente de aprobación"
         const newFlorist: Florist = {
           id: newFloristId,
-          ownerId: newUserId,
+          ownerId: profile.id,
           commercialName: commercialName || `Florería de ${fullName}`,
           slug: (commercialName || fullName).toLowerCase().replace(/\s+/g, '-'),
           description: 'Nueva florería registrada en la plataforma Lunaria. Confección de ramos y arreglos locales.',
@@ -92,27 +108,14 @@ export const RegisterPage: React.FC = () => {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
-
-        const newProfile: Profile = {
-          id: newUserId,
-          email,
-          fullName,
-          phone,
-          role: 'florist',
-          floristId: newFloristId,
-          addresses: [],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
         await repository.saveFlorist(newFlorist);
-        await repository.saveProfile(newProfile);
         await refreshMarketplaceData();
-        await switchDemoUser(newUserId);
 
         setSuccessMessage('¡Florería registrada con éxito! Tu estado inicial es "Pendiente de aprobación" por el Administrador.');
-        setTimeout(() => navigate('/vendedor'), 2000);
+        setTimeout(() => navigate('/vendedor', { replace: true }), 2000);
       }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'No se pudo crear la cuenta.');
     } finally {
       setLoading(false);
     }
@@ -181,6 +184,12 @@ export const RegisterPage: React.FC = () => {
           </div>
         )}
 
+        {errorMessage && (
+          <div role="alert" className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800">
+            {errorMessage}
+          </div>
+        )}
+
         <form onSubmit={handleRegister} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -226,6 +235,8 @@ export const RegisterPage: React.FC = () => {
               <input
                 type="password"
                 required
+                autoComplete="new-password"
+                minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Mínimo 8 caracteres"
