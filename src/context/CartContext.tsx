@@ -1,6 +1,20 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { CartItem, ProductOffer, CatalogProduct, Florist, Order, DeliveryMethod, Address } from '../types';
 import { repository } from '../services/repository';
+import { useMarketplace } from './MarketplaceContext';
+
+const DEFAULT_DELIVERY_FEE = 50;
+
+/**
+ * Costo de envío de una florería hacia una comunidad: la tarifa de su zona activa
+ * para esa comunidad, o la tarifa por defecto si no tiene una zona específica.
+ * Úsala en TODO lugar que muestre o calcule envíos, para que lo que ve el comprador
+ * coincida con lo que se cobra en Stripe.
+ */
+export function getDeliveryFee(florist: Florist, communityId?: string): number {
+  const zone = florist.deliveryZones.find((dz) => dz.communityId === communityId && dz.isActive);
+  return zone ? zone.deliveryFee : DEFAULT_DELIVERY_FEE;
+}
 
 interface FloristOrderGroup {
   florist: Florist;
@@ -41,6 +55,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 const CART_STORAGE_KEY = 'lunaria_cart_items_v1';
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { selectedCommunity } = useMarketplace();
   const [items, setItems] = useState<CartItem[]>(() => {
     try {
       const saved = localStorage.getItem(CART_STORAGE_KEY);
@@ -129,19 +144,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const groups: FloristOrderGroup[] = [];
     map.forEach((value) => {
       const groupSubtotal = value.items.reduce((acc, i) => acc + i.offer.price * i.quantity, 0);
-      // Tomamos la tarifa base de la primera zona activa de la florería o $45 por defecto
-      const defaultFee = value.florist.deliveryZones[0]?.deliveryFee || 45;
+      // Tarifa de envío de la florería hacia la comunidad seleccionada (misma regla que al crear el pedido)
+      const fee = getDeliveryFee(value.florist, selectedCommunity?.id);
       groups.push({
         florist: value.florist,
         items: value.items,
         subtotal: groupSubtotal,
-        deliveryFee: defaultFee,
-        total: groupSubtotal + defaultFee,
+        deliveryFee: fee,
+        total: groupSubtotal + fee,
       });
     });
 
     return groups;
-  }, [items]);
+  }, [items, selectedCommunity]);
 
   const isMultiFloristCart = groupedByFlorist.length > 1;
 
@@ -163,11 +178,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const createdOrders: Order[] = [];
 
     for (const group of groupedByFlorist) {
-      // Buscar costo de entrega específico para la comunidad elegida
-      const zone = group.florist.deliveryZones.find(
-        (dz) => dz.communityId === params.deliveryCommunityId && dz.isActive
-      );
-      const deliveryFee = params.deliveryMethod === 'delivery' ? (zone ? zone.deliveryFee : 50) : 0;
+      // Costo de entrega específico para la comunidad elegida
+      const deliveryFee =
+        params.deliveryMethod === 'delivery' ? getDeliveryFee(group.florist, params.deliveryCommunityId) : 0;
       const totalAmount = group.subtotal + deliveryFee;
 
       const orderItems = group.items.map((cartItem) => ({

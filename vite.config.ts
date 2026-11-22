@@ -2,7 +2,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig, loadEnv, Plugin} from 'vite';
-import {createPaymentsApi, PaymentsConfig} from './server/payments';
+import {createPaymentsApi, PaymentsConfig} from './server/payments.ts';
 
 /**
  * Monta la API de pagos (server/payments.ts) en /api, tanto en `npm run dev`

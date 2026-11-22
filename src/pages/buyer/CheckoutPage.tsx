@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useCart } from '../../context/CartContext';
+import { useCart, getDeliveryFee } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useMarketplace } from '../../context/MarketplaceContext';
 import { DeliveryMethod, Address, Order } from '../../types';
@@ -179,7 +179,7 @@ export const CheckoutPage: React.FC = () => {
   }
 
   const grandTotal = groupedByFlorist.reduce((acc, g) => {
-    const fee = deliveryMethod === 'delivery' ? g.deliveryFee : 0;
+    const fee = deliveryMethod === 'delivery' ? getDeliveryFee(g.florist, targetCommunityId) : 0;
     return acc + g.subtotal + fee;
   }, 0);
 
@@ -433,7 +433,7 @@ export const CheckoutPage: React.FC = () => {
 
           <div className="space-y-3 text-xs border-b border-[#F2ECE4] pb-4">
             {groupedByFlorist.map((group) => {
-              const fee = deliveryMethod === 'delivery' ? group.deliveryFee : 0;
+              const fee = deliveryMethod === 'delivery' ? getDeliveryFee(group.florist, targetCommunityId) : 0;
               return (
                 <div key={group.florist.id} className="p-3 rounded-xl bg-[#FAF8F5] border border-[#EAE3D9] space-y-1">
                   <div className="font-semibold text-[#2C2825]">{group.florist.commercialName}</div>

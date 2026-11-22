@@ -350,7 +350,7 @@ export const ProductDetailPage: React.FC = () => {
               disabled={offer.stock <= 0}
               className="w-full py-3.5 px-4 bg-[#2C2825] hover:bg-black text-white text-xs font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
             >
-              <span>Comprar ahora y coordinar por WhatsApp</span>
+              <span>Comprar ahora</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

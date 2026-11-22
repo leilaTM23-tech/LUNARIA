@@ -12,8 +12,8 @@
 import express from 'express';
 import Stripe from 'stripe';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { fromRow, toRow } from '../src/services/supabaseMapping';
-import type { Order, ProductOffer } from '../src/types';
+import { fromRow, toRow } from '../src/services/supabaseMapping.ts';
+import type { Order, ProductOffer } from '../src/types/index.ts';
 
 export interface PaymentsConfig {
   stripeSecretKey?: string;
