@@ -176,8 +176,13 @@ async function runTests() {
     // 5. Verificación de Tablas del Repositorio
     logSection('5. Tablas de Base de Datos (SupabaseRepository)');
     const tablesToTest = [
+        'communities',
+        'categories',
         'profiles',
         'florists',
+        'catalog_products',
+        'product_offers',
+        'orders',
         'florist_invitations',
         'florist_applications',
         'application_audit_logs'
@@ -202,7 +207,7 @@ async function runTests() {
                     passed: false,
                     details: `Status ${status}: [${error.code || 'ERROR'}] ${error.message}`,
                     suggestion: notFound 
-                        ? `La tabla '${table}' no existe aún en la base de datos de Supabase. Debes ejecutar el script SQL de creación de tablas.`
+                        ? `La tabla '${table}' no existe aún en la base de datos de Supabase. Ejecuta supabase/schema.sql en el SQL Editor de Supabase.`
                         : isRls 
                         ? `La tabla existe pero las políticas RLS restringen la lectura anónima.` 
                         : undefined

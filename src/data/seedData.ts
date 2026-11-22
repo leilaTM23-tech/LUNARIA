@@ -1014,7 +1014,6 @@ export const INITIAL_PRODUCT_OFFERS: ProductOffer[] = [
 ];
 
 export const INITIAL_PROFILES: Profile[] = [
-<<<<<<< HEAD
   // Administradoras
   {
     id: 'user-admin-leilani',
@@ -1026,9 +1025,6 @@ export const INITIAL_PROFILES: Profile[] = [
     createdAt: '2025-01-01T00:00:00Z',
     updatedAt: '2026-11-03T00:00:00Z',
   },
-=======
-  // 1 Administradora
->>>>>>> eed516d25adddc722e7dab08066c5b2229332703
   {
     id: 'user-admin-elena',
     email: 'elena.morales@lunaria.mx',
@@ -1399,6 +1395,7 @@ export const INITIAL_ORDERS: Order[] = [
       },
     ],
     whatsappMessageSent: true,
+    paymentStatus: 'paid',
     createdAt: '2026-10-27T18:45:00Z',
     updatedAt: '2026-10-27T18:46:00Z',
   },
@@ -1460,6 +1457,7 @@ export const INITIAL_ORDERS: Order[] = [
       },
     ],
     whatsappMessageSent: true,
+    paymentStatus: 'paid',
     createdAt: '2026-10-27T14:10:00Z',
     updatedAt: '2026-10-27T14:25:00Z',
   },
@@ -1530,6 +1528,7 @@ export const INITIAL_ORDERS: Order[] = [
       },
     ],
     whatsappMessageSent: true,
+    paymentStatus: 'paid',
     createdAt: '2026-10-27T09:30:00Z',
     updatedAt: '2026-10-27T11:15:00Z',
   },
@@ -1591,6 +1590,7 @@ export const INITIAL_ORDERS: Order[] = [
       },
     ],
     whatsappMessageSent: true,
+    paymentStatus: 'paid',
     createdAt: '2026-10-27T08:00:00Z',
     updatedAt: '2026-10-27T16:00:00Z',
   },
@@ -1632,6 +1632,7 @@ export const INITIAL_ORDERS: Order[] = [
       { status: 'delivered', timestamp: '2026-10-26T14:45:00Z', changedBy: 'Repartidor Bugambilia', note: 'Entregado en recepción a satisfacción.' },
     ],
     whatsappMessageSent: true,
+    paymentStatus: 'paid',
     createdAt: '2026-10-26T10:00:00Z',
     updatedAt: '2026-10-26T14:45:00Z',
   },
@@ -1670,6 +1671,7 @@ export const INITIAL_ORDERS: Order[] = [
       { status: 'delivered', timestamp: '2026-10-25T15:20:00Z', changedBy: 'Sofía Méndez', note: 'Entregado personalmente.' },
     ],
     whatsappMessageSent: true,
+    paymentStatus: 'paid',
     createdAt: '2025-10-25T11:00:00Z',
     updatedAt: '2026-10-25T15:20:00Z',
   },
@@ -1708,6 +1710,7 @@ export const INITIAL_ORDERS: Order[] = [
       { status: 'cancelled', timestamp: '2026-10-22T09:35:00Z', changedBy: 'Comprador Mariana', note: 'El evento fue reprogramado en otra parroquia.' },
     ],
     whatsappMessageSent: false,
+    paymentStatus: 'pending',
     createdAt: '2026-10-22T09:00:00Z',
     updatedAt: '2026-10-22T09:35:00Z',
   },

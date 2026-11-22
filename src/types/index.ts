@@ -7,6 +7,7 @@ export type UserRole = 'buyer' | 'florist' | 'admin';
 
 export interface Profile {
   id: string;
+  authUserId?: string; // id de la cuenta de Supabase Auth vinculada a este perfil
   email: string;
   fullName: string;
   phone: string;
@@ -218,7 +219,8 @@ export interface ProductOffer {
 }
 
 export type OrderStatus =
-  | 'pending_contact'      // Pendiente de contacto
+  | 'awaiting_payment'     // Esperando pago en línea (Stripe)
+  | 'pending_contact'      // Pendiente de contacto (ya pagado)
   | 'contacted'            // Contactado
   | 'confirmed_by_vendor'  // Confirmado por vendedor
   | 'in_preparation'       // En preparación
@@ -227,6 +229,10 @@ export type OrderStatus =
   | 'cancelled';           // Cancelado
 
 export type DeliveryMethod = 'delivery' | 'pickup';
+
+export type PaymentStatus =
+  | 'pending'  // Pedido creado, pago aún no confirmado
+  | 'paid';    // Pago confirmado por Stripe
 
 export interface OrderItem {
   id: string;
@@ -272,6 +278,11 @@ export interface Order {
   status: OrderStatus;
   statusHistory: OrderStatusHistoryItem[];
   whatsappMessageSent: boolean;
+  // Pago en línea (Stripe Checkout)
+  paymentStatus: PaymentStatus;
+  paidAt?: string;
+  stripeSessionId?: string;
+  stripePaymentIntentId?: string;
   createdAt: string;
   updatedAt: string;
 }

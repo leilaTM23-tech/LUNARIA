@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth, useRequiredUser } from '../../context/AuthContext';
 import { useMarketplace } from '../../context/MarketplaceContext';
 import { Address } from '../../types';
 import {
@@ -15,7 +15,8 @@ import {
 } from 'lucide-react';
 
 export const BuyerProfilePage: React.FC = () => {
-  const { currentUser, updateCurrentProfile } = useAuth();
+  const currentUser = useRequiredUser();
+  const { updateCurrentProfile } = useAuth();
   const { communities } = useMarketplace();
 
   const [fullName, setFullName] = useState(currentUser.fullName);

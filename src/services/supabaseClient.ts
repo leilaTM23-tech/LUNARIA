@@ -1,7 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
-let rawUrl = (import.meta.env.VITE_SUPABASE_URL || '').trim();
-const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim();
+// En el navegador las variables llegan por Vite (import.meta.env);
+// en scripts de Node (tsx) llegan por process.env (dotenv).
+const env: Record<string, string | undefined> =
+    (import.meta as any).env ?? (typeof process !== 'undefined' ? process.env : {});
+
+let rawUrl = (env.VITE_SUPABASE_URL || '').trim();
+const supabaseAnonKey = (env.VITE_SUPABASE_ANON_KEY || '').trim();
 
 if (!rawUrl || !supabaseAnonKey) {
     console.warn('⚠️ Faltan las variables de entorno de Supabase en el archivo .env');

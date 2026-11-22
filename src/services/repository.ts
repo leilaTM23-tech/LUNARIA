@@ -52,21 +52,12 @@ export interface ILunariaRepository {
     optionsOrActorId?:
       | string
       | {
-<<<<<<< HEAD
         adminNotes?: string;
         rejectionReason?: string;
         suspensionReason?: string;
         actorId?: string;
         actorName?: string;
       },
-=======
-          adminNotes?: string;
-          rejectionReason?: string;
-          suspensionReason?: string;
-          actorId?: string;
-          actorName?: string;
-        },
->>>>>>> eed516d25adddc722e7dab08066c5b2229332703
     actorName?: string,
     notes?: string
   ): Promise<void>;
@@ -264,21 +255,12 @@ class LocalStorageRepository implements ILunariaRepository {
     optionsOrActorId?:
       | string
       | {
-<<<<<<< HEAD
         adminNotes?: string;
         rejectionReason?: string;
         suspensionReason?: string;
         actorId?: string;
         actorName?: string;
       },
-=======
-          adminNotes?: string;
-          rejectionReason?: string;
-          suspensionReason?: string;
-          actorId?: string;
-          actorName?: string;
-        },
->>>>>>> eed516d25adddc722e7dab08066c5b2229332703
     actorNameParam?: string,
     notesParam?: string
   ): Promise<void> {
@@ -524,7 +506,7 @@ class LocalStorageRepository implements ILunariaRepository {
       commercialName: businessName,
       orderAgentName: applicantName,
       email,
-      communityId: data.communityId || 'comm-tlaxcala',
+      communityId: data.communityId || 'com-tlaxcala-centro',
       communityName: data.communityName || 'Tlaxcala',
       address: data.address || '',
       description: data.description || '',
@@ -532,7 +514,7 @@ class LocalStorageRepository implements ILunariaRepository {
       whatsapp,
       phone,
       deliveryModes: data.deliveryModes || (data.allowsPickup ? ['delivery', 'pickup'] : ['delivery']),
-      deliveryCommunities: data.deliveryCoverage || data.deliveryCommunities || [data.communityId || 'comm-tlaxcala'],
+      deliveryCommunities: data.deliveryCoverage || data.deliveryCommunities || [data.communityId || 'com-tlaxcala-centro'],
       estimatedDeliveryTime: data.prepTimeEstimated || data.estimatedDeliveryTime || '2 a 4 horas',
       prepTimeEstimated: data.prepTimeEstimated || data.estimatedDeliveryTime || '2 a 4 horas',
       invitationId: data.invitationId,
@@ -553,7 +535,7 @@ class LocalStorageRepository implements ILunariaRepository {
         slug: businessName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-'),
         description: data.description || '',
         address: data.address || '',
-        communityId: data.communityId || 'comm-tlaxcala',
+        communityId: data.communityId || 'com-tlaxcala-centro',
         phone,
         whatsapp,
         openingHours: data.openingHours || 'Lunes a Sábado: 8:00 - 19:00',
@@ -578,14 +560,8 @@ class LocalStorageRepository implements ILunariaRepository {
       action: 'submit_application',
       previousStatus: 'draft',
       newStatus: newApp.status,
-<<<<<<< HEAD
       notes: `Solicitud enviada vía ${newApp.registrationMethod === 'invitation' ? 'enlace de invitación' : 'registro público "Vende con nosotros"'
         }.`,
-=======
-      notes: `Solicitud enviada vía ${
-        newApp.registrationMethod === 'invitation' ? 'enlace de invitación' : 'registro público "Vende con nosotros"'
-      }.`,
->>>>>>> eed516d25adddc722e7dab08066c5b2229332703
     });
 
     return newApp;
@@ -985,10 +961,6 @@ class LocalStorageRepository implements ILunariaRepository {
 }
 
 // Instancia singleton para la aplicación
-<<<<<<< HEAD
 // AHORA:
 import { SupabaseRepository } from './SupabaseRepository';
 export const repository: ILunariaRepository = new SupabaseRepository();
-=======
-export const repository: ILunariaRepository = new LocalStorageRepository();
->>>>>>> eed516d25adddc722e7dab08066c5b2229332703

@@ -344,10 +344,10 @@ export const HomePage: React.FC = () => {
               3
             </div>
             <h3 className="font-serif text-lg font-semibold text-[#2C2825] mb-2">
-              Confirma vía WhatsApp
+              Paga y coordina la entrega
             </h3>
             <p className="text-xs text-[#7A736E] leading-relaxed">
-              Con un solo clic se genera tu resumen de pedido y te comunicas directo con el florista para acordar transferencia o contra entrega.
+              Paga en línea con tarjeta de forma segura y después coordina la entrega directo con el florista por WhatsApp.
             </p>
           </div>
         </div>

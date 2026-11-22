@@ -5,7 +5,7 @@ import { MarketplaceProvider } from './context/MarketplaceContext';
 import { CartProvider } from './context/CartContext';
 
 // Componentes estructurales
-import { DemoNoticeBanner } from './components/common/DemoNoticeBanner';
+import { RequireAuth } from './components/common/RequireAuth';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
 
@@ -19,15 +19,13 @@ import { LoginPage } from './pages/public/LoginPage';
 import { RegisterPage } from './pages/public/RegisterPage';
 import { SellWithUsPage } from './pages/public/SellWithUsPage';
 import { InvitationRegisterPage } from './pages/public/InvitationRegisterPage';
-<<<<<<< HEAD
 import { SupabaseTestPage } from './pages/public/SupabaseTestPage';
-=======
->>>>>>> eed516d25adddc722e7dab08066c5b2229332703
 
 // Páginas Comprador
 import { BuyerProfilePage } from './pages/buyer/BuyerProfilePage';
 import { CartPage } from './pages/buyer/CartPage';
 import { CheckoutPage } from './pages/buyer/CheckoutPage';
+import { PaymentResultPage } from './pages/buyer/PaymentResultPage';
 import { BuyerOrdersPage } from './pages/buyer/BuyerOrdersPage';
 import { BuyerOrderDetailPage } from './pages/buyer/BuyerOrderDetailPage';
 
@@ -56,9 +54,6 @@ export default function App() {
         <MarketplaceProvider>
           <CartProvider>
             <div className="min-h-screen flex flex-col bg-[#FAF8F5] text-[#2C2825]">
-              {/* Banner de aviso DEMO y selector de roles */}
-              <DemoNoticeBanner />
-
               {/* Barra de navegación superior conforme al Top Bar Contract */}
               <Navbar />
 
@@ -76,36 +71,40 @@ export default function App() {
                   <Route path="/vende-con-nosotros" element={<SellWithUsPage />} />
                   <Route path="/invitacion/:token" element={<InvitationRegisterPage />} />
                   <Route path="/registro-invitacion" element={<InvitationRegisterPage />} />
-<<<<<<< HEAD
-                  <Route path="/test-supabase" element={<SupabaseTestPage />} />
-=======
->>>>>>> eed516d25adddc722e7dab08066c5b2229332703
-
-                  {/* --- PÁGINAS COMPRADOR --- */}
-                  <Route path="/comprador/perfil" element={<BuyerProfilePage />} />
+                  {/* --- PÁGINAS COMPRADOR (requieren sesión) --- */}
+                  {/* El carrito es público: el invitado puede armarlo y se le pide iniciar sesión al pagar */}
                   <Route path="/carrito" element={<CartPage />} />
-                  <Route path="/checkout" element={<CheckoutPage />} />
-                  <Route path="/comprador/pedidos" element={<BuyerOrdersPage />} />
-                  <Route path="/comprador/pedido/:id" element={<BuyerOrderDetailPage />} />
+                  <Route element={<RequireAuth />}>
+                    <Route path="/comprador/perfil" element={<BuyerProfilePage />} />
+                    <Route path="/checkout" element={<CheckoutPage />} />
+                    <Route path="/checkout/pago" element={<PaymentResultPage />} />
+                    <Route path="/comprador/pedidos" element={<BuyerOrdersPage />} />
+                    <Route path="/comprador/pedido/:id" element={<BuyerOrderDetailPage />} />
+                  </Route>
 
-                  {/* --- PÁGINAS VENDEDOR (FLORERÍA) --- */}
-                  <Route path="/vendedor" element={<VendorDashboardPage />} />
-                  <Route path="/vendedor/floreria" element={<VendorShopProfilePage />} />
-                  <Route path="/vendedor/productos" element={<VendorProductsPage />} />
-                  <Route path="/vendedor/producto/nuevo" element={<VendorProductFormPage />} />
-                  <Route path="/vendedor/producto/:id/editar" element={<VendorProductFormPage />} />
-                  <Route path="/vendedor/inventario" element={<VendorInventoryPage />} />
-                  <Route path="/vendedor/pedidos" element={<VendorOrdersPage />} />
-                  <Route path="/vendedor/entregas" element={<VendorDeliveriesPage />} />
+                  {/* --- PÁGINAS VENDEDOR (solo florerías) --- */}
+                  <Route element={<RequireAuth roles={['florist']} />}>
+                    <Route path="/vendedor" element={<VendorDashboardPage />} />
+                    <Route path="/vendedor/floreria" element={<VendorShopProfilePage />} />
+                    <Route path="/vendedor/productos" element={<VendorProductsPage />} />
+                    <Route path="/vendedor/producto/nuevo" element={<VendorProductFormPage />} />
+                    <Route path="/vendedor/producto/:id/editar" element={<VendorProductFormPage />} />
+                    <Route path="/vendedor/inventario" element={<VendorInventoryPage />} />
+                    <Route path="/vendedor/pedidos" element={<VendorOrdersPage />} />
+                    <Route path="/vendedor/entregas" element={<VendorDeliveriesPage />} />
+                  </Route>
 
-                  {/* --- PÁGINAS ADMINISTRADOR --- */}
-                  <Route path="/admin" element={<AdminDashboardPage />} />
-                  <Route path="/admin/florerias" element={<AdminFloristsPage />} />
-                  <Route path="/admin/usuarios" element={<AdminUsersPage />} />
-                  <Route path="/admin/comunidades" element={<AdminCommunitiesPage />} />
-                  <Route path="/admin/catalogo" element={<AdminCatalogPage />} />
-                  <Route path="/admin/pedidos" element={<AdminOrdersPage />} />
-                  <Route path="/admin/reportes" element={<AdminReportsPage />} />
+                  {/* --- PÁGINAS ADMINISTRADOR (solo admins) --- */}
+                  <Route element={<RequireAuth roles={['admin']} />}>
+                    <Route path="/admin" element={<AdminDashboardPage />} />
+                    <Route path="/admin/florerias" element={<AdminFloristsPage />} />
+                    <Route path="/admin/usuarios" element={<AdminUsersPage />} />
+                    <Route path="/admin/comunidades" element={<AdminCommunitiesPage />} />
+                    <Route path="/admin/catalogo" element={<AdminCatalogPage />} />
+                    <Route path="/admin/pedidos" element={<AdminOrdersPage />} />
+                    <Route path="/admin/reportes" element={<AdminReportsPage />} />
+                    <Route path="/test-supabase" element={<SupabaseTestPage />} />
+                  </Route>
 
                   {/* Fallback */}
                   <Route path="*" element={<Navigate to="/" replace />} />

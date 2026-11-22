@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import { useRequiredUser } from '../../context/AuthContext';
 import { repository } from '../../services/repository';
 import { Order, OrderStatus } from '../../types';
 import { StatusBadge } from '../../components/common/StatusBadge';
@@ -14,8 +14,11 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 
+// La florería solo ve pedidos ya pagados; los que esperan pago aún no deben prepararse.
+const onlyPaid = (orders: Order[]) => orders.filter((o) => o.status !== 'awaiting_payment');
+
 export const VendorOrdersPage: React.FC = () => {
-  const { currentUser } = useAuth();
+  const currentUser = useRequiredUser();
   const floristId = currentUser.floristId || 'flor-1';
 
   const [orders, setOrders] = useState<Order[]>([]);
@@ -32,7 +35,7 @@ export const VendorOrdersPage: React.FC = () => {
     async function loadOrders() {
       setLoading(true);
       try {
-        const list = await repository.getOrders({ floristId });
+        const list = await repository.getOrders({ floristId }).then(onlyPaid);
         setOrders(list);
       } finally {
         setLoading(false);

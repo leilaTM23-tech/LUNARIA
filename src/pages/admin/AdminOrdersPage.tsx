@@ -94,6 +94,7 @@ export const AdminOrdersPage: React.FC = () => {
             className="px-3 py-2 bg-white border border-[#EAE3D9] rounded-xl text-xs font-semibold text-[#2C2825] focus:outline-none"
           >
             <option value="all">Todos los estados</option>
+            <option value="awaiting_payment">Esperando pago</option>
             <option value="pending_contact">Pendiente de contacto</option>
             <option value="contacted">Contactado</option>
             <option value="confirmed_by_vendor">Confirmado</option>

@@ -8,6 +8,7 @@ import {
   Truck,
   PackageCheck,
   XCircle,
+  CreditCard,
 } from 'lucide-react';
 
 interface StatusBadgeProps {
@@ -17,6 +18,13 @@ interface StatusBadgeProps {
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, showIcon = true }) => {
   switch (status) {
+    case 'awaiting_payment':
+      return (
+        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-stone-700 bg-stone-100 px-2 py-0.5 rounded border border-stone-300">
+          {showIcon && <CreditCard className="w-3.5 h-3.5 text-stone-500" />}
+          Esperando pago
+        </span>
+      );
     case 'pending_contact':
       return (
         <span className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">

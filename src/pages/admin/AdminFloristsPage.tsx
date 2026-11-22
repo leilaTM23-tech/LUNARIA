@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import { useRequiredUser } from '../../context/AuthContext';
 import { repository } from '../../services/repository';
 import {
   Florist,
@@ -39,7 +39,7 @@ import {
 type AdminTab = 'applications' | 'invitations' | 'approved' | 'suspended_rejected';
 
 export const AdminFloristsPage: React.FC = () => {
-  const { currentUser } = useAuth();
+  const currentUser = useRequiredUser();
   const [activeTab, setActiveTab] = useState<AdminTab>('applications');
   const [loading, setLoading] = useState(true);
 
